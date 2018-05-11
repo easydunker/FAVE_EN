@@ -1,0 +1,48 @@
+# Preparation
+# Export Tab-delimited text from ELAN, remember to select "exclude tier names" and "exclude participant names"
+# use the following code to change the text to tab-delimited text to space-delimited text
+# need to cd to the directory where I store the .txt file first
+cd ~/Document...
+Desktop mac232$ cat KF0202_Reading_ch.txt |tr "\\t" "," > clean_KF0202_Reading_ch.txt
+# make sure only the one .txt and its corresponding .wav are in the ToBeAligned folder, and the two files should have matching names
+
+# 1. Run alignbysentence.py
+
+cd ~/Documents/PROJECT/Diss/Diss_Analysis/Aligner/PennPhoneticsForcedAligner
+python2.6 alignbysentence.py
+
+# 2. Convert TextGrids to csv files via Praat script TextGridToCSV.praat
+
+# run TextGridToCSV.praat in Praat5422
+# modify source and destination paths if necessary
+
+# 3. Concatenate csv files
+cd /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/ToBeAligned
+ls *.wav | sed 's/.wav//' > PrefixList.txt
+tr '\r' '\n' < PrefixList.txt > PrefixList2.txt
+
+cd /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/AlignedOutput
+
+filenames=$(cat /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/ToBeAligned/PrefixList2.txt)
+for prefix in $filenames;
+do { head -n1 ${prefix}_out0.csv;
+for f in ${prefix}_out*.csv;
+do tail -n+2 "$f"; done; } > /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/FinalProduct/${prefix}.csv; done
+
+# 4. Move wav files to the same directory as the concatenated csv files
+cd /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/ToBeAligned
+mv *.wav /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/FinalProduct
+
+# 5. Convert concatenated csv files into Praat TextGrids with CSVToTextGrid.praat
+
+# run CSVToTextGrid.praat in Praat5422
+# modify source path if necessary
+
+# 6. Cleanup
+cd /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/ToBeAligned
+rm *_out[0-9]*.TextGrid
+
+cd /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/AlignedOutput
+rm *_out[0-9]*.csv
+
+# The resulting .TextGrid and .wav files can be found in /Users/mac232/Documents/PROJECT/Diss/Diss_Analysis/Aligner/FinalProduct
